@@ -6,7 +6,7 @@
 extern void mat_mul_asm(uint size, uint* a, uint* b , uint* c);
 
 // This is the C equivalent to the assembly implementation
-void mat_mul_c(uint size, uint* a, uint* b , uint* c) {
+/*void mat_mul_c(uint size, uint* a, uint* b , uint* c) {
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
 			for(int k = 0; k < size; k++) {
@@ -14,7 +14,7 @@ void mat_mul_c(uint size, uint* a, uint* b , uint* c) {
 			}
 		}
 	}
-}
+}*/
 
 int main(int argc, char **argv) {
 	// Initialisation
@@ -31,8 +31,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Multiplication
-	mat_mul_c(size, a, b, c);
-	//mat_mul_asm(size, a, b, c); // Call this when the function is implemented
+	mat_mul_asm(size, a, b, c);
 	
 	// Print result
 	for (uint i = 0; i < size; i++) {
