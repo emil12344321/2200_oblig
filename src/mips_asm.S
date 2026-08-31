@@ -6,15 +6,17 @@ mat_mul_asm:
     # a1 = a
     # a2 = b
     # a3 = c
+	daddiu $sp, $sp, -12
+    daddu $t1, $zero, $zero   # k = 0 || teller element i rad
+	daddu $s0, $zero, $zero   # j = 0 || teller hvilken rad
 
-    daddu $t1, $zero, $zero   # k = 0
-	daddu $s0 $zero, $zero.   # j = 0
 
-
+# 1. optimaliser registerbruk etter funksjonen gjør det den skal
+# 2. optimaliser branch logikk etter funkjson gjør det den skal
 
 neste_element_k:
     slt   $t0, $t1, $a0       # t0 = (k < size) ? 1 : 0 || sjekker for hver iterasjon
-    beq   $t0, $zero, bytt_rad_j    # hopp ut av loopen når k >= size
+    beq   $t0, $zero, sjekker_ferdig_matrise    # hopp ut av loopen når k >= size og sjekker om matrisen er ferdig
     nop
 
     dsll  $t3, $t1, 2         # t3 = k * 4 (felles byte-offset for a og b)
@@ -38,26 +40,39 @@ neste_element_k:
 
 
 
-bytt_rad_j:
-	#sjekker om vi er ferdig med matrisen 
-	slt   $t0, $s0, $a0       
-	beq   $t0, $zero, ferdig_matrise # gå til ferdig_matrise 
+neste_rad_j:
+
+	#legg til offset
+	dsll $s1, $s0, 5      # i * 32
+	dsll $t3, $s0, 3      # i * 8
+	daddu $s1, $t1, $t2   # i*32 + i*8 = i*40
+
+	daddiu $t1, $zero, 0
+	daddiu $s0, $s0, 1        # k++
+	
+	#start neste runde med iterasjoner
+	j neste_element_k
 
 
-	#siden matrisen ikke er ferdig går vi til neste rad 
-	beq   $t0, $zero, neste_element_k    # hopp ut av loopen når k >= size
-	dsll  $t3, $t1, 2         # t3 = endre offset for å bytte rad-- fiks dette
-	bgt 					  # hvis vi er på slutten av raden->branch til sjekk om vi er ferdig med matrisen
 
+#betingelsen for gå til denne labelen er at k = 10
+# så vi sjekker bare at j = 10 i denne prosdyren
+sjekker_ferdig_matrise:
 
+	beq $s0, $a0, end
+	nop
 
+	daddi $t0, $zero, 0 # sett true/false i linje 19 til default false
 
+	#siden k != 10 så går vi til neste rad
+	j neste_rad_j
 
-	daddiu $t1, $t1, 1        # k++
-    j     loopj
+	nop
+	#ferdig med matrisen
 
-
-ferdig_matrise:
+end:
+	daddiu $sp, $sp, 12
+	
 
 	jr $ra
 
