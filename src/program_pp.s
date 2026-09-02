@@ -5,87 +5,79 @@
 # 1 "/usr/mips64-linux-gnuabi64/include/stdc-predef.h" 1 3
 # 0 "<command-line>" 2
 # 1 "mips_asm.S"
-.global mat_mul_asm # Make this label available in the global symbol table
-.type mat_mul_asm, @function # Declare this label type: function
+.global mat_mul_asm
+.type mat_mul_asm, @function
 
 mat_mul_asm:
-    # a0 = size
-    # a1 = a
-    # a2 = b
-    # a3 = c
- daddiu $sp, $sp, -12
-    daddu $t1, $zero, $zero # k = 0 || teller element i rad
- daddu $s0, $zero, $zero # j = 0 || teller hvilken rad
- daddu $s1, $zero, $zero # radoffset (i byte) = 0 for rad 0
+    daddu $s0, $zero, $zero # i = 0
+    dsll $s7, $a0, 2 # s7 = size*4 (byte-stride per rad)
 
+loop_i:
 
-# 1. optimaliser registerbruk etter funksjonen gjør det den skal
-# 2. optimaliser branch logikk etter funkjson gjør det den skal
-
-neste_element_k:
-    slt $t0, $t1, $a0 # t0 = (k < size) ? 1 : 0 || sjekker for hver iterasjon
-    beq $t0, $zero, sjekker_ferdig_matrise # hopp ut av loopen når k >= size og sjekker om matrisen er ferdig
+ #hvis i er ferdig gå til end
+    slt $t0, $s0, $a0
+    beq $t0, $zero, end
     nop
 
-    dsll $t3, $t1, 2 # t3 = k * 4 (felles byte-offset for a og b)
-    daddu $t3, $t3, $s1 # t3 = k*4 + rad_offset (j*size*4) -> byte-offset for element [j][k]
+    mult $s0, $a0
+    mflo $s3
+    dsll $s3, $s3, 2 # s3 = i*size*4 (radoffset for a og c)
 
-    daddu $t2, $a1, $t3 # t2 = &a[j]+[k]
-    lw $t2, 0($t2) # t2 = a[k] (adressen "brukes opp" og erstattes av verdien)
+    daddu $s1, $zero, $zero # j = 0
 
-    daddu $t0, $a2, $t3 # t0 = &b[k]
-    lw $t0, 0($t0) # t0 = b[k]
-
-
-
-    mult $t2, $t0 # LO = a[k] * b[k] -- her mangler det +k og +j
-    mflo $t8 # t8 = LO (nederste 32 bit av resultatet)
-
-    daddu $t9, $a3, $t3 # t9 = &c[k]
- lw $ta0, 0($t9) # c
- daddu $t8, $ta0, $t8
-
-    sw $t8, 0($t9) # c[k] = a[k] * b[k]
-
-    daddiu $t1, $t1, 1 # k++
-    j neste_element_k
+loop_j:
+    slt $t0, $s1, $a0
+    beq $t0, $zero, next_i
     nop
 
+    dsll $t8, $s1, 2 # t8 = j*4 (kolonneoffset for b og c)
 
+    daddu $s2, $zero, $zero # k = 0
 
+loop_k:
+    slt $t0, $s2, $a0
+    beq $t0, $zero, next_j
+    nop
 
-neste_rad_j:
+    dsll $t0, $s2, 2 # t0 = k*4
 
- #legg til offset
- dsll $t0, $a0, 2 # t0 = size * 4
- mult $s0, $t0 # LO = j * radbredde
- mflo $s1 # s1 = j * size * 4 (total radoffset, brukes i neste_element_k)
+    # a[i*size + k]
+    daddu $t1, $t0, $s3
+    daddu $t1, $t1, $a1
+    lw $t2, 0($t1)
 
- daddiu $t1, $zero, 0
- daddiu $s0, $s0, 1 # j++
+    # b[k*size + j]
+    mult $s2, $a0
+    mflo $t3
+    dsll $t3, $t3, 2
+    daddu $t3, $t3, $t8
+    daddu $t3, $t3, $a2
+    lw $t9, 0($t3)
 
- #start neste runde med iterasjoner
- j neste_element_k
+    mult $t2, $t9
+    mflo $t3 # t3 = a[i][k]*b[k][j]
 
+    # c[i*size + j]
+    daddu $t1, $s3, $t8
+    daddu $t1, $t1, $a3
+    lw $t9, 0($t1)
+    daddu $t9, $t9, $t3
+    sw $t9, 0($t1)
 
+    daddiu $s2, $s2, 1
+    j loop_k
+    nop
 
-#betingelsen for gå til denne labelen er at k = 10
-# så vi sjekker bare at j = 10 i denne prosdyren
-sjekker_ferdig_matrise:
+next_j:
+    daddiu $s1, $s1, 1
+    j loop_j
+    nop
 
- beq $s0, $a0, end
- nop
-
- daddi $t0, $zero, 0 # sett true/false i linje 19 til default false
-
- #siden k != 10 så går vi til neste rad
- j neste_rad_j
-
- nop
- #ferdig med matrisen
+next_i:
+    daddiu $s0, $s0, 1
+    j loop_i
+    nop
 
 end:
- daddiu $sp, $sp, 12
-
-
- jr $ra
+    jr $ra
+    nop
