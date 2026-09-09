@@ -31,8 +31,7 @@ main: main.c Makefile
 
 # asm.S, mips.S and main has to exist before executing compilation targets
 program: x86_asm.S mips_asm.S main
-	$(CC) $(CFLAGS) -E $(ASM_FILE) > $@_pp.s
-	$(CC) $(CFLAGS) main.s $@_pp.s -o $@
+	$(CC) $(CFLAGS) main.s $(ASM_FILE) -o $@
 
 run:
 	./program

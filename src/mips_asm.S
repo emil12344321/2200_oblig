@@ -7,11 +7,11 @@ mat_mul_asm:
 
 loop_i:
 
-	#hvis i er ferdig gå til end
+	#hvis i = size gå til end
     slt   $t0, $s0, $a0
     beq   $t0, $zero, end
     nop
-	
+
     mult  $s0, $a0
     mflo  $s3
     dsll  $s3, $s3, 2             # s3 = i*size*4  (radoffset for a og c)

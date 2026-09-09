@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
 
 // Implement this function in x86_asm.S and mips_asm.S
 extern void mat_mul_asm(uint size, uint* a, uint* b , uint* c);
@@ -31,8 +32,12 @@ int main(int argc, char **argv) {
 	}
 
 	// Multiplication
+	clock_t start = clock();
 	mat_mul_asm(size, a, b, c);
+	clock_t end = clock();
+	
 
+	
 	// kommenter inn for å bruke c implementasjon:
 	//mat_mul_c(size, a, b, c);
 	// Print result
