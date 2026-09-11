@@ -3,6 +3,7 @@
 #include <stdint.h>
 // for benchmarking
 #include <time.h>
+#include <unistd.h>
 
 // Implement this function in x86_asm.S and mips_asm.S
 extern void mat_mul_asm(uint size, uint* a, uint* b , uint* c);
@@ -45,7 +46,9 @@ int main(int argc, char **argv) {
 
 	//run 1000 times to warm up caches
 	for (int i = 0; i < 1000; i++) {
-		mat_mul_asm(size, a, b, c);
+		// choose between testing c or assembly
+		mat_mul_c(size, a, b, c);
+		//mat_mul_asm(size, a, b, c);
 	}
 
 	// later test what number works best here - tradeoffs?
@@ -59,7 +62,9 @@ int main(int argc, char **argv) {
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
 		for (int i = 0; i < it; i++) {
-			mat_mul_asm(size, a, b, c);
+			// choose between asm and c
+			mat_mul_c(size, a, b, c);
+			//mat_mul_asm(size, a, b, c);
 		}
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
@@ -70,7 +75,12 @@ int main(int argc, char **argv) {
 		printf("Run %d: %.2f ns per call\n", (run + 1), average);
 
 		fprintf(file, "%d,%.0f,%.2f\n", (run + 1), total, average);
+		
+		sleep(1);
 	}
+
+	// force compiler to run calculation
+	printf("Force update %u\n", c[0]);
 
 	fclose(file);
 

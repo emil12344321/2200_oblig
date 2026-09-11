@@ -11,18 +11,18 @@ CC = gcc
 # -masm=att Compiles .C with at&t assembly systax
 # -g adds debug information to the executable file
 # Remove -g before any testing
-CFLAGS = -masm=att -O0 -g
+CFLAGS = -masm=att -O0
 ASM_FILE = x86_asm.S
 MIPS_EMU = qemu-mips64-static
 X86_EMU = qemu-x86_64-static
 
 all: program
 mips64: CC = mips64-linux-gnuabi64-gcc # Change this according to your cross-compiler binary
-mips64: CFLAGS = -static -O0 -g
+mips64: CFLAGS = -static -O0
 mips64: ASM_FILE = mips_asm.S
 mips64: program
 x86: CC = x86_64-linux-gnu-gcc         # Change this according to your cross-compiler binary
-x86: CFLAGS = -static -O0 -g
+x86: CFLAGS = -static -Ofast
 x86: ASM_FILE = x86_asm.S
 x86: program
 
